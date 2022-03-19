@@ -1,0 +1,39 @@
+CREATE DATABASE IF NOT EXISTS NuxtChat CHARACTER SET 'utf8';
+
+CREATE USER IF NOT EXISTS 'localNuxt'@'localhost' IDENTIFIED BY 'localPassword';
+
+USE NuxtChat;
+
+GRANT SELECT, INSERT, DELETE, UPDATE ON * TO 'localNuxt'@'localhost';
+
+#user schema
+CREATE TABLE IF NOT EXISTS users (
+	id SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	pseudo VARCHAR(15) NOT NULL UNIQUE,
+	password TEXT NOT NULL,
+	refreshToken TEXT
+);
+
+#friends schema
+CREATE TABLE IF NOT EXISTS friends (
+	id SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	userId1 SMALLINT UNSIGNED NOT NULL CHECK (userId1 != userId2),
+	userId2 SMALLINT UNSIGNED NOT NULL CHECK (userId1 != userId2),
+	pending BOOL NOT NULL DEFAULT true,
+	CONSTRAINT fk_friends_user_userId FOREIGN KEY (userId1) REFERENCES users(id),
+	CONSTRAINT fk_friends_user_friendId FOREIGN KEY (userId2) REFERENCES users(id),
+	UNIQUE KEY(userId1,userId2),
+	UNIQUE KEY(userId2,userId1)
+);
+
+#message shcema
+CREATE TABLE IF NOT EXISTS messages (
+	id SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	userId SMALLINT UNSIGNED NOT NULL,
+	friendId SMALLINT UNSIGNED NOT NULL,
+	message TEXT,
+	creation DATETIME DEFAULT NOW(),
+	CONSTRAINT fk_message_user_userId FOREIGN KEY (userId) REFERENCES users(id),
+	CONSTRAINT fk_message_user_friendId FOREIGN KEY (friendId) REFERENCES users(id)
+);
+
