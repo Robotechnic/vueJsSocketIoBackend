@@ -1,4 +1,4 @@
-const mariadb = require()
+const mariadb = require("mariadb")
 
 module.exports = mariadb.createPool({
 	host: process.env.DB_HOST || "localhost",

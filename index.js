@@ -2,6 +2,9 @@ const http = require("http");
 const express = require("express")
 const app = express()
 
+const port = process.env.PORT || 3000
+const server = http.createServer(app)
+
 require("dotenv").config()
 
 const helmet = require("helmet")
@@ -69,14 +72,11 @@ app.get("/",(req,res)=>{
 	})
 })
 
+const io = require("./socketio/socket.js")(server)
+
 app.use("/friends", require("./routes/friends")(db))
 app.use("/messages", require("./routes/messages")(db))
 app.use("/user", require("./routes/user")(db))
-
-const port = process.env.PORT || 3000
-const server = http.createServer(app)
-
-const io = require("socketio/socket.js")(server)
 
 server.listen(port, () => {
 	console.log(`API server listening on port ${port}`)

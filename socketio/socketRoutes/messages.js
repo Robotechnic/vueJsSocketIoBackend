@@ -1,4 +1,4 @@
-const dbQuery = require("../../api/utils/dbQuery")
+const dbQuery = require("../api/utils/dbQuery")
 
 module.exports = (socket)=> {return async (token, message)  => {
 	if (token.server) {

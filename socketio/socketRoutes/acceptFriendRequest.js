@@ -1,4 +1,4 @@
-const userQuery = require("../../api/utils/userQuery")
+const userQuery = require("../api/utils/userQuery")
 
 module.exports = (socket) => {
 	return async (token, request) => {

@@ -1,32 +1,9 @@
 const tokenChecker = require("../middleware/token")
 const friendQuery = require("../utils/friendQuery")
 const fields = require("../middleware/requiredFields")
-const socket = require("socket.io-client")
-const jwt = require("jsonwebtoken")
+const router = require("express").Router()
 
-module.exports = (db) => {
-	const router = require("express").Router()
-	router.token = jwt.sign({
-		server: true
-	}, process.env.TOKEN_SECRET)
-
-	// router.socket = socket.io(`${process.env.ORIGIN}:${process.env.WEBSOCKET_PORT}`,{
-	// 	auth: {
-	// 		token: router.token
-	// 	}
-	// })
-
-	// router.socket.on("connect", () => {
-	// 	console.log("Api server connected to soket server")
-	// })
-
-	// router.socket.on("error", (error) => {
-	// 	console.error("Api socket error", error)
-	// })
-
-	// router.socket.on("connect_error", (err) => {
-	// 	console.error("Api socket connexion Error", err)
-	// })
+module.exports = (db, io) => {
 
 	router.post("/userFriends", tokenChecker, async (req, res) => {
 
@@ -135,10 +112,22 @@ module.exports = (db) => {
 			})
 		}
 
-		router.socket.emit("newFriendRequest", router.token, {
-			from: req.token.id,
-			to: req.body.userId,
-			requestId: result.insertId
+		const friendInfo  = await userQuery.getUserInfo(db, request.from)
+
+		if (friendInfo.error) {
+			console.error(err)
+			return res.status(500).json({
+				error: "Internal error",
+				code: "INTERNAL"
+			})
+		}
+
+		let friendInf = friendInfo.result[0]
+		friendInf.userId = friendInf.id
+		friendInf.id = result.id
+		
+		io.to(String(req.body.userId)).emit("newRequest", router.token, {
+			friendInf
 		})
 
 		return res.json({
@@ -184,11 +173,11 @@ module.exports = (db) => {
 			})
 		}
 
-		router.socket.emit("cancelFriendRequest", router.token, {
-			to: req.token.id == result[0].userId1 ? result[0].userId2 : result[0].userId1,
-			requestId
-		})
-
+		io.to(
+			String(
+				req.token.id == result[0].userId1 ? result[0].userId2 : result[0].userId1
+			)
+		).emit("cancelFriendRequest", requestId)
 		res.json({})
 	})
 
@@ -202,10 +191,11 @@ module.exports = (db) => {
 			})
 		}
 
-		router.socket.emit("acceptFriendRequest", router.token, {
-			to: req.token.userId,
-			requestId
-		})
+		io.to(
+			String(
+				req.token.id == result[0].userId1 ? result[0].userId2 : result[0].userId1
+			)
+		).emit("acceptFriendRequest", requestId)
 
 		res.json({})
 	})
