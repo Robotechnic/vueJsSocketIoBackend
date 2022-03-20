@@ -1,5 +1,6 @@
 const dbQuery = require("../../utils/dbQuery")
 const friendQuery = require("../../utils/friendQuery")
+const htmlEscape = require("escape-html")
 
 module.exports = (io, socket)=> {return async (token, message)  => {
 	if (token.server) {
@@ -20,7 +21,7 @@ module.exports = (io, socket)=> {return async (token, message)  => {
 	({ err, result } = await dbQuery(
 		io.db,
 		"INSERT INTO messages (userId,friendId,message) VALUES (?,?,?)",
-		[socket.token.id, message.to, message.message]
+		[socket.token.id, message.to, htmlEscape(message.message)]
 	))
 
 	if (err) {
