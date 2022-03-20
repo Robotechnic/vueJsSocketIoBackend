@@ -7,13 +7,15 @@ const server = http.createServer(app)
 
 require("dotenv").config()
 
+
 const helmet = require("helmet")
 app.use(helmet())
 
 if (process.env.FRONTEND_URL) {
 	const cors = require("cors")
 	app.use(cors({
-		origin: process.env.FRONTEND_URL
+		origin: process.env.FRONTEND_URL,
+		credentials: true
 	}))
 }
 
@@ -72,9 +74,9 @@ app.get("/",(req,res)=>{
 	})
 })
 
-const io = require("./socketio/socket.js")(server)
+const io = require("./socketio/socket.js")(server, db)
 
-app.use("/friends", require("./routes/friends")(db))
+app.use("/friends", require("./routes/friends")(db, io))
 app.use("/messages", require("./routes/messages")(db))
 app.use("/user", require("./routes/user")(db))
 

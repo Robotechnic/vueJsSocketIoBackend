@@ -1,4 +1,4 @@
-const friendQuery = require("../api/utils/friendQuery")
+const friendQuery = require("../../utils/friendQuery")
 
 module.exports = (io,socket) => {return async () => {
 	const { result, err } = await friendQuery.userFriends(io.db, socket.token.id)

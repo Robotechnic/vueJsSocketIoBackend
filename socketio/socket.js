@@ -1,13 +1,17 @@
 const { Server } = require("socket.io")
 const tokenChecker = require("./middlewares/token")
 
-module.exports = (server) => {
+module.exports = (server, db) => {
 	const io = new Server(server, {
-		serveClient: false
+		serveClient: false,
+		cors: {
+			origin: process.env.FRONTEND_URL
+		}
 	})
 
+	io.db = db
+
 	io.use((socket, next) => {
-		console.log("New socket connection")
 		if (socket.handshake.auth && socket.handshake.auth.token) {
 			const result = tokenChecker(socket.handshake.auth.token)
 
@@ -33,9 +37,6 @@ module.exports = (server) => {
 		socket.on("getConnectedSockets", require("./socketRoutes/getConnectedSockets")(io, socket))
 
 		socket.on("error", require("./socketRoutes/error")(socket))
-
-		socket.on("acceptFriendRequest", require("./socketRoutes/acceptFriendRequest")(socket))
-		socket.on("cancelFriendRequest", require("./socketRoutes/cancelFriendRequest")(socket))
 		
 		socket.on("disconnecting", () => {
 			socket.broadcast.emit("status", [{

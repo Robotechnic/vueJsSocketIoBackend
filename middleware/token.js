@@ -28,7 +28,7 @@ module.exports = (req,res,next) => {
 			})
 		}
 
-		console.log(err) // log error only if it's unknown
+		console.error(err) // log error only if it's unknown
 		return res.status(500).json({
 			error: "Internal error",
 			code: "INTERNAL"
@@ -36,16 +36,6 @@ module.exports = (req,res,next) => {
 	}
 	
 	const token = jwt.decode(body.token)
-
-	// check ip
-	if (token.ip !== req.ip){
-		res.status(401).json({
-			error: "Invalid ip, this token has different ip than your",
-			code: "INVALID_TOKEN_IP"
-		})
-		return
-	}
-
 	req.token = token
 
 	next()

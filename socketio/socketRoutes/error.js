@@ -1,5 +1,5 @@
 module.exports = (socket)=>{return (err) => {
-	console.log("Socket error", err)
+	console.error("Socket error", err)
 	if (err) {
 		if (err.message === "EXPIRED_TOKEN" ||
 			err.message === "INVALID_TOKEN") {

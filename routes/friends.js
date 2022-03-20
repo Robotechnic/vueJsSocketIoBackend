@@ -1,5 +1,6 @@
 const tokenChecker = require("../middleware/token")
 const friendQuery = require("../utils/friendQuery")
+const userQuery = require("../utils/userQuery")
 const fields = require("../middleware/requiredFields")
 const router = require("express").Router()
 
@@ -112,8 +113,8 @@ module.exports = (db, io) => {
 			})
 		}
 
-		const friendInfo  = await userQuery.getUserInfo(db, request.from)
-
+		const friendInfo  = await userQuery.getUserInfo(db, req.body.userId)
+		
 		if (friendInfo.error) {
 			console.error(err)
 			return res.status(500).json({
@@ -121,13 +122,12 @@ module.exports = (db, io) => {
 				code: "INTERNAL"
 			})
 		}
-
 		let friendInf = friendInfo.result[0]
 		friendInf.userId = friendInf.id
-		friendInf.id = result.id
+		friendInf.id = Number(result.insertId)
 		
-		io.to(String(req.body.userId)).emit("newRequest", router.token, {
-			friendInf
+		io.to(String(req.body.userId)).emit("newRequest", {
+			...friendInf
 		})
 
 		return res.json({
@@ -137,7 +137,7 @@ module.exports = (db, io) => {
 	})
 
 	router.post("/getRequests", tokenChecker, async(req,res)=>{
-		const {result, err} = await friendQuery.getFriendRequest(db, req.token.id)
+		const { result, err } = await friendQuery.getFriendRequests(db, req.token.id)
 		if (err) {
 			return res.status(500).json({
 				error: "Internal error",
@@ -163,8 +163,6 @@ module.exports = (db, io) => {
 	router.post("/cancelRequest", tokenChecker, fields(["requestId"]), async (req, res)=>{
 		const requestId = req.body.requestId
 
-		console.log(requestId)
-
 		const { result, err } = await friendQuery.cancelFriendRequest(db, requestId)
 		if (err || result.length == 0) {
 			return res.status(500).json({
@@ -183,8 +181,16 @@ module.exports = (db, io) => {
 
 	router.post("/acceptRequest", tokenChecker, fields(["requestId"]), async (req, res) => {
 		const requestId = req.body.requestId
-		const { result, err } = await friendQuery.acceptFriendRequest(db, requestId)
+		const {result, err} = await friendQuery.getFriendRequest(db, requestId)
 		if (err) {
+			return res.status(500).json({
+				error: "Internal error",
+				code: "INTERNAL"
+			})
+		}
+
+		const accept = await friendQuery.acceptFriendRequest(db, requestId)
+		if (accept.err) {
 			return res.status(500).json({
 				error: "Internal error",
 				code: "INTERNAL"

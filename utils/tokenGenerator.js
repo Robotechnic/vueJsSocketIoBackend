@@ -15,7 +15,6 @@ const accessToken = (id, ip) => [
 	ms(process.env.ACCESS_TOKEN_EXPIRE)
 ]
 
-
 module.exports = (id, ip) => ({ accessToken: accessToken(id, ip), refreshToken: refreshToken(id) })
 module.exports.accessToken = accessToken
 module.exports.refreshToken = refreshToken

@@ -56,7 +56,7 @@ module.exports = (db) => {
 		}
 
 		// for all others errors
-		console.log(err)
+		console.error(err)
 		return res.status(500).json({
 			error: "Internal error",
 			code: "INTERNAL"
@@ -143,7 +143,6 @@ module.exports = (db) => {
 	})
 
 	route.post("/refresh", async (req, res) => {
-		console.log("refresh")
 		const refreshToken = req.cookies.refreshToken
 		if (!refreshToken) {
 			return res.status(401).json({
@@ -169,7 +168,7 @@ module.exports = (db) => {
 				})
 			}
 
-			console.log(err) // log error only if it's unknown
+			console.error(err) // log error only if it's unknown
 			return res.status(500).json({
 				error: "Internal error",
 				code: "INTERNAL"
@@ -205,11 +204,28 @@ module.exports = (db) => {
 		})
 	})
 
-	route.post("/logout", require("../middleware/token"), async (req, res) => {
-		const { result, err } = await userQuery.updateRefreshToken(db,"",req.token.id)
-
+	route.post("/logout", fields(["token"]), async (req, res) => {
 		// set cookie
 		res.clearCookie("refreshToken")
+
+		try {
+			jwt.verify(req.body.token, process.env.TOKEN_SECRET)
+		} catch (err) {
+			if (err.name === "JsonWebTokenError") {
+				return res.status(401).json({
+					error: "Token is invalid",
+					code: "INVALID_TOKEN"
+				})
+			}
+			if (err.name === "TokenExpiredError") {
+				return res.status(401).json({
+					error: "Token is expired",
+					code: "EXPIRED_TOKEN"
+				})
+			}
+		}
+		const token = jwt.decode(req.body.token)
+		const { result, err } = await userQuery.updateRefreshToken(db,"",token.id)
 		
 		if (err && result.affectedRows >= 1){
 			return res.status(500).json({

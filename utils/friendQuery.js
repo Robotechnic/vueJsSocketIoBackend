@@ -75,10 +75,25 @@ module.exports = {
 		)
 	},
 
-	async getFriendRequest(db, userId) {
+	async getFriendRequest(db, requestId) {
 		return await dbQuery(
 			db,
-			"SELECT f.id AS id, u.id AS userId, pseudo FROM users u INNER JOIN friends f ON f.userId2=u.id AND pending=true WHERE userId1=?",
+			"SELECT * FROM friends WHERE id=?",
+			[requestId]
+		)
+	},
+
+	async getFriendRequests(db, userId) {
+		return await dbQuery(
+			db,
+			"SELECT " +
+				"f.id AS id, "+
+				"u.id AS userId, " +
+				"pseudo " +
+			"FROM " + 
+				"users u INNER JOIN friends f ON f.userId2=u.id AND pending=true "+
+			"WHERE " +
+				"userId1=?",
 			[userId]
 		)
 	},

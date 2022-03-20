@@ -5,7 +5,6 @@ module.exports = (token) => {
 		jwt.verify(token, process.env.TOKEN_SECRET)
 	} catch (err) {
 		if (err.name === "JsonWebTokenError") {
-			console.log(token)
 			return {
 				error: "Token is invalid",
 				code: "INVALID_TOKEN"
@@ -19,7 +18,7 @@ module.exports = (token) => {
 			}
 		}
 
-		console.log(err) // log error only if it's unknown
+		console.error(err) // log error only if it's unknown
 		return {
 			error: "Internal error",
 			code: "INTERNAL"
