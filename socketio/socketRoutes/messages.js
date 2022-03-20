@@ -1,6 +1,7 @@
 const dbQuery = require("../../utils/dbQuery")
+const friendQuery = require("../../utils/friendQuery")
 
-module.exports = (socket)=> {return async (token, message)  => {
+module.exports = (io, socket)=> {return async (token, message)  => {
 	if (token.server) {
 		return
 	}

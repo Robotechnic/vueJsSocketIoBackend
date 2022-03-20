@@ -32,7 +32,7 @@ module.exports = (server, db) => {
 	io.on("connection", function (socket) {
 		socket.use(require("./middlewares/socketAutentication"))
 
-		socket.on("message", require("./socketRoutes/messages"))
+		socket.on("message", require("./socketRoutes/messages")(io, socket))
 
 		socket.on("getConnectedSockets", require("./socketRoutes/getConnectedSockets")(io, socket))
 
